@@ -3,6 +3,15 @@
 declare(strict_types=1);
 
 return [
+	// Interface. Rotas normais (com token CSRF, sessao de browser) -- ao
+	// contrario das OCS abaixo, que sao para o agente. Os formularios usam
+	// POST tambem para apagar, porque HTML so suporta GET e POST.
+	'routes' => [
+		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
+		['name' => 'page#create', 'url' => '/create', 'verb' => 'POST'],
+		['name' => 'page#destroy', 'url' => '/delete/{id}', 'verb' => 'POST'],
+	],
+
 	// Rotas OCS (nao 'routes'): sao chamaveis com app password, sem sessao de
 	// browser nem token CSRF -- que e o que permite a um agente usa-las.
 	// Ficam em /ocs/v2.php/apps/recall/api/v1/...
