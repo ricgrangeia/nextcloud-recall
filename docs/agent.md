@@ -79,6 +79,16 @@ GET    /ocs/v2.php/apps/recall/api/v1/files/resolve?link=<url ou file id>
 Obrigatórios: `title` e `occurred_at`. Põe sempre `"source": "agent"` no que criares —
 é o que distingue o que deduziste do que o utilizador escreveu à mão.
 
+**Um acontecimento, um episódio.** Se acabaste de criar um episódio e reparas que lhe
+falta alguma coisa — uma ligação, o tipo, a data certa — **corrige-o com
+`PUT /episodes/{id}`**. NUNCA crie um segundo episódio para completar o primeiro: ficam
+dois registos do mesmo acontecimento, e daqui a um ano o `on-this-day` conta-o duas
+vezes. O `PUT` aceita `links`, que substituem por completo os existentes, por isso
+manda a lista toda — os que já lá estavam mais o novo.
+
+O `title` descreve **o que aconteceu**, não o que tu fizeste. "Organizámos o estudo da
+Sofia por matérias", nunca "Ligação à nota Sofia".
+
 Repara no exemplo: a Sofia aparece em `links`, **não só no título**. Se o utilizador
 nomeia alguém, o episódio tem de ficar ligado a essa pessoa — ver a secção seguinte.
 

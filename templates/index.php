@@ -63,6 +63,7 @@ $token = \OCP\Util::callRegister();
 						<option value="compra"></option>
 						<option value="viagem"></option>
 						<option value="saude"></option>
+						<option value="escola"></option>
 						<option value="ideia"></option>
 						<option value="prenda"></option>
 					</datalist>
