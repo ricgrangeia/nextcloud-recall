@@ -46,16 +46,19 @@ class EpisodeMapper extends QBMapper {
 			->from($this->getTableName())
 			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
 
+		// Comparadas como string ISO, nao com PARAM_DATE: 'YYYY-MM-DD' ordena
+		// lexicograficamente igual a cronologicamente, e os tres motores
+		// aceitam-na contra uma coluna 'date' sem conversoes pelo meio.
 		if ($from !== null) {
 			$qb->andWhere($qb->expr()->gte(
 				'occurred_at',
-				$qb->createNamedParameter($from, IQueryBuilder::PARAM_DATE)
+				$qb->createNamedParameter($from->format('Y-m-d'))
 			));
 		}
 		if ($to !== null) {
 			$qb->andWhere($qb->expr()->lte(
 				'occurred_at',
-				$qb->createNamedParameter($to, IQueryBuilder::PARAM_DATE)
+				$qb->createNamedParameter($to->format('Y-m-d'))
 			));
 		}
 		if ($type !== null && $type !== '') {
@@ -142,6 +145,31 @@ class EpisodeMapper extends QBMapper {
 		}
 
 		return array_values(array_unique($out));
+	}
+
+	/**
+	 * Usado pela pesquisa inversa ("tudo o que me lembro sobre esta pessoa"):
+	 * o LinkMapper devolve ids, estes trazem os episodios numa so consulta.
+	 *
+	 * @param int[] $ids
+	 * @return Episode[]
+	 */
+	public function findByIds(string $userId, array $ids, int $limit = 50, int $offset = 0): array {
+		if ($ids === []) {
+			return [];
+		}
+
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->in('id', $qb->createNamedParameter($ids, IQueryBuilder::PARAM_INT_ARRAY)))
+			->orderBy('occurred_at', 'DESC')
+			->addOrderBy('id', 'DESC')
+			->setMaxResults(max(1, min($limit, 500)))
+			->setFirstResult(max(0, $offset));
+
+		return $this->findEntities($qb);
 	}
 
 	public function deleteById(int $id, string $userId): bool {

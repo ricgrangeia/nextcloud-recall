@@ -9,8 +9,8 @@ use OCP\AppFramework\Db\Entity;
 /**
  * @method string getUserId()
  * @method void setUserId(string $userId)
- * @method \DateTime getOccurredAt()
- * @method void setOccurredAt(\DateTime $occurredAt)
+ * @method string getOccurredAt()
+ * @method void setOccurredAt(string $occurredAt)
  * @method int getOccurredYear()
  * @method void setOccurredYear(int $occurredYear)
  * @method int getOccurredMd()
@@ -48,9 +48,13 @@ class Episode extends Entity implements \JsonSerializable {
 
 	public function __construct() {
 		$this->addType('id', 'integer');
-		$this->addType('occurredAt', 'date');
 		$this->addType('occurredYear', 'integer');
 		$this->addType('occurredMd', 'integer');
+		// occurredAt fica deliberadamente sem addType e e tratado como string
+		// 'Y-m-d'. Ligar objetos DateTime a uma coluna 'date' obriga a acertar
+		// com o tipo exato que cada motor devolve na leitura, e os tres nao
+		// concordam; uma string ISO e aceite por MySQL, PostgreSQL e SQLite
+		// tanto a escrever como a comparar.
 	}
 
 	/**
@@ -60,15 +64,22 @@ class Episode extends Entity implements \JsonSerializable {
 	 * entre inteiros produzidos da mesma maneira.
 	 */
 	public function applyOccurredAt(\DateTimeInterface $date): void {
-		$this->setOccurredAt(new \DateTime($date->format('Y-m-d')));
+		$this->setOccurredAt($date->format('Y-m-d'));
 		$this->setOccurredYear((int)$date->format('Y'));
 		$this->setOccurredMd((int)$date->format('md'));
 	}
 
 	public function jsonSerialize(): array {
-		$occurred = $this->occurredAt instanceof \DateTimeInterface
-			? $this->occurredAt->format('Y-m-d')
-			: null;
+		// Tolerante ao que o motor devolver: alguns entregam a coluna 'date'
+		// como string, outros ja com hora colada.
+		$occurred = $this->occurredAt;
+		if ($occurred instanceof \DateTimeInterface) {
+			$occurred = $occurred->format('Y-m-d');
+		} elseif (is_string($occurred) && $occurred !== '') {
+			$occurred = substr($occurred, 0, 10);
+		} else {
+			$occurred = null;
+		}
 
 		return [
 			'id' => $this->getId(),
