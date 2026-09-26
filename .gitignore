@@ -1,0 +1,18 @@
+vendor/
+composer.lock
+node_modules/
+.DS_Store
+
+# O dominio desta app e vida privada: memorias, pessoas, compras, saude.
+# O codigo e publico, os dados nunca. Estas regras existem ANTES de haver
+# qualquer dado, porque a tentacao de commitar "so um exemplo real" para
+# reproduzir um bug aparece exatamente quando ja e tarde.
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+dumps/
+exports/
+fixtures/local/
+screenshots/local/
