@@ -85,6 +85,58 @@ class ContactApiController extends OCSController {
 		return new DataResponse(['contacts' => $out]);
 	}
 
+	/**
+	 * Diagnostico: devolve, sem filtrar, o que o Nextcloud sabe sobre cada
+	 * contacto que corresponde a pesquisa.
+	 *
+	 * Existe porque o desempate de homonimos so pode assentar em propriedades
+	 * que CHEGUEM MESMO aqui -- CATEGORIES (grupos), RELATED (conjuge, filho),
+	 * NICKNAME. Construir a regra sobre a suposicao de que chegam e a melhor
+	 * maneira de escrever codigo que parece certo e nao faz nada. Isto mostra
+	 * o que ha antes de se decidir o que usar.
+	 *
+	 * O search e do IManager, logo ja esta limitado aos livros de enderecos
+	 * do utilizador da sessao -- nao ha aqui forma de espreitar contactos de
+	 * outra pessoa.
+	 */
+	#[NoAdminRequired]
+	public function inspect(string $q = '', int $limit = 10): DataResponse {
+		$q = trim($q);
+		if ($q === '') {
+			return new DataResponse(['error' => 'q e obrigatorio'], Http::STATUS_BAD_REQUEST);
+		}
+		if (!$this->contacts->isEnabled()) {
+			return new DataResponse(['error' => 'gestor de contactos inativo'], Http::STATUS_OK);
+		}
+
+		$found = $this->contacts->search($q, ['FN', 'EMAIL', 'NICKNAME'], [
+			'limit' => max(1, min($limit, 25)),
+			'enumeration' => false,
+		]);
+
+		$out = [];
+		foreach ($found as $contact) {
+			$limpo = [];
+			foreach ($contact as $prop => $valor) {
+				// A foto e binaria e enche a resposta com kilobytes de base64
+				// sem responder a pergunta nenhuma. Diz-se que existe e passa.
+				$limpo[$prop] = ($prop === 'PHOTO')
+					? '<' . strlen((string)(is_array($valor) ? reset($valor) : $valor)) . ' bytes>'
+					: $valor;
+			}
+			$out[] = $limpo;
+		}
+
+		return new DataResponse([
+			'query' => $q,
+			'count' => count($out),
+			// A lista das propriedades vistas em qualquer um dos resultados, para
+			// se ver de relance o que existe sem ler tudo contacto a contacto.
+			'properties_seen' => array_values(array_unique(array_merge(...array_map('array_keys', $out ?: [[]])))),
+			'contacts' => $out,
+		]);
+	}
+
 	/** Estes campos tanto vem como string unica como array de valores. */
 	private static function first(mixed $value): string {
 		if (is_array($value)) {

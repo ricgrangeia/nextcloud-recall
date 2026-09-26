@@ -27,6 +27,9 @@ return [
 		['name' => 'episodeApi#destroy', 'url' => '/api/v1/episodes/{id}', 'verb' => 'DELETE'],
 
 		// Alimentam os seletores da interface.
+		// 'inspect' antes de 'contacts' por consistencia com a regra acima --
+		// aqui nao ha parametro a colidir, mas a ordem nao custa nada.
+		['name' => 'contactApi#inspect', 'url' => '/api/v1/contacts/inspect', 'verb' => 'GET'],
 		['name' => 'contactApi#search', 'url' => '/api/v1/contacts', 'verb' => 'GET'],
 		['name' => 'fileApi#resolve', 'url' => '/api/v1/files/resolve', 'verb' => 'GET'],
 	],
