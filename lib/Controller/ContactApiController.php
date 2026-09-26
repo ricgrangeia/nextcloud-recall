@@ -41,10 +41,25 @@ class ContactApiController extends OCSController {
 			return new DataResponse(['contacts' => []], Http::STATUS_OK);
 		}
 
+		$limite = max(1, min($limit, 25));
 		$found = $this->contacts->search($q, ['FN', 'EMAIL'], [
-			'limit' => max(1, min($limit, 25)),
+			'limit' => $limite,
 			'enumeration' => false,
 		]);
+
+		// A pesquisa do Nextcloud e substring literal: "Sofia Dias" nao encontra
+		// "Sofia da Fonseca Dias", porque nao e um pedaco contiguo do nome. Sem
+		// isto, dizer o nome mais completo dava MENOS resultados do que dizer so
+		// o primeiro nome -- e zero resultados faz o episodio ficar sem ligacao,
+		// que e o desfecho pior de todos. Cai-se para o primeiro nome e deixa-se
+		// o desempate (familia, uso anterior, cobertura do nome) fazer o resto.
+		$primeiro = self::firstWord($q);
+		if ($found === [] && $primeiro !== $q) {
+			$found = $this->contacts->search($primeiro, ['FN', 'EMAIL'], [
+				'limit' => $limite,
+				'enumeration' => false,
+			]);
+		}
 
 		$out = [];
 		foreach ($found as $contact) {
@@ -117,7 +132,13 @@ class ContactApiController extends OCSController {
 	}
 
 	private static function matchRank(string $match): int {
-		return ['exact' => 3, 'start' => 2, 'word' => 1][$match] ?? 0;
+		return ['exact' => 4, 'start' => 3, 'all_words' => 2, 'word' => 1][$match] ?? 0;
+	}
+
+	/** O primeiro nome, para quando a pesquisa pelo nome completo nao da nada. */
+	private static function firstWord(string $q): string {
+		$partes = preg_split('/\s+/u', trim($q), 2);
+		return $partes[0] ?? $q;
 	}
 
 	/**
@@ -126,6 +147,11 @@ class ContactApiController extends OCSController {
 	 * Distingue "esta pessoa chama-se Sofia" de "esta pessoa tem Sofia escrito
 	 * no nome por referencia a outra" -- que numa lista de dez resultados e a
 	 * diferenca entre a filha do utilizador e a professora da filha.
+	 *
+	 * 'all_words' e o que salva o caso "Sofia Dias": as duas palavras estao no
+	 * nome mas nao seguidas, por isso a pesquisa literal falhou e so chegamos
+	 * aqui pela queda para o primeiro nome. Ter TODAS as palavras ditas e um
+	 * sinal forte -- mais forte do que ter so uma.
 	 */
 	private static function nameMatch(string $q, string $name): string {
 		$q = self::fold($q);
@@ -139,11 +165,29 @@ class ContactApiController extends OCSController {
 		if (str_starts_with($name, $q . ' ')) {
 			return 'start';
 		}
-		// Fronteira de palavra, para "Avo Sofia" contar e "Sofias" nao.
-		if (preg_match('/(?:^|[^\p{L}])' . preg_quote($q, '/') . '(?:$|[^\p{L}])/u', $name) === 1) {
+		if (self::isWordIn($q, $name)) {
 			return 'word';
 		}
+
+		$palavras = preg_split('/\s+/u', $q) ?: [];
+		if (count($palavras) > 1) {
+			foreach ($palavras as $palavra) {
+				if (!self::isWordIn($palavra, $name)) {
+					return 'partial';
+				}
+			}
+			return 'all_words';
+		}
+
 		return 'partial';
+	}
+
+	/** Fronteira de palavra, para "Avo Sofia" contar e "Sofias" nao. */
+	private static function isWordIn(string $agulha, string $palheiro): bool {
+		return preg_match(
+			'/(?:^|[^\p{L}])' . preg_quote($agulha, '/') . '(?:$|[^\p{L}])/u',
+			$palheiro
+		) === 1;
 	}
 
 	/** Compara nomes sem tropecar em acentos nem maiusculas. */

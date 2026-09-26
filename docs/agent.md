@@ -122,8 +122,15 @@ O `ref` é **sempre um identificador estável**, nunca um nome nem um caminho:
 
   - `exact` — o contacto chama-se exatamente assim
   - `start` — o nome procurado abre o nome ("Sofia da Fonseca Dias")
+  - `all_words` — disseste várias palavras e estão **todas** no nome, mas separadas
+    ("Sofia Dias" → "Sofia da Fonseca Dias"); sinal forte
   - `word` — aparece como palavra inteira algures ("Avó Sofia")
   - `partial` — aparece só lá dentro; **quase nunca é a pessoa**
+
+  **Procura pelo nome mais completo que o utilizador disser**, não só pelo primeiro. Se
+  ele disse "Sofia Dias", procura `q=Sofia Dias`: a pesquisa cai sozinha para o primeiro
+  nome se não encontrar nada, e o `all_words` isola a pessoa certa mesmo sem marcação de
+  família. Encurtar o nome só deita fora informação que o utilizador te deu.
 
   Os sinais, do mais forte para o mais fraco:
 
