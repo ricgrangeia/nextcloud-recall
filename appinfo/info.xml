@@ -22,6 +22,7 @@ lembrar sem que ninguem se lembre de perguntar.]]></description>
 	<namespace>Recall</namespace>
 	<category>organization</category>
 	<bugs>https://github.com/ricgrangeia/nextcloud-recall/issues</bugs>
+	<repository type="git">https://github.com/ricgrangeia/nextcloud-recall.git</repository>
 	<dependencies>
 		<php min-version="8.3" max-version="8.5"/>
 		<database min-version="8.0">mysql</database>
@@ -29,4 +30,8 @@ lembrar sem que ninguem se lembre de perguntar.]]></description>
 		<database>sqlite</database>
 		<nextcloud min-version="35" max-version="35"/>
 	</dependencies>
+	<commands>
+		<command>OCA\Recall\Command\AddEpisode</command>
+		<command>OCA\Recall\Command\ListEpisodes</command>
+	</commands>
 </info>
