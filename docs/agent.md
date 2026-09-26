@@ -155,6 +155,16 @@ O `ref` é **sempre um identificador estável**, nunca um nome nem um caminho:
   vez e resolve o problema para sempre.
 - `photo` / `file` / `folder` → file id do Nextcloud. Se tiveres um URL,
   passa-o por `GET /api/v1/files/resolve?link=<url>`, que devolve já o `kind` certo.
+
+  **Notas da app Notes**: o `id` que a Notes devolve em `GET /apps/notes/api/v1/notes`
+  **é** o file id do Nextcloud (confirmado). Para ligar uma nota, procura-a por título
+  nessa lista e usa `{"kind": "file", "ref": "<id>", "label": "<título da nota>"}`.
+  Usa o **título**, não o nome do ficheiro — o `resolve` devolveria `Sofia.md`, que é
+  pior de ler daqui a um ano.
+
+  E não confundas o pedido: ligar uma nota não é guardar a nota aqui. O texto continua
+  a viver nas Notes e pode mudar mil vezes; o recall guarda o acontecimento com data e
+  a referência para ela. Se não houver acontecimento nem data, não pertence ao recall.
 - `event` / `task` → UID do CalDAV do evento ou da tarefa.
 
 O `label` é o nome legível **no momento em que ligas**. Grava-o sempre: a foto pode ser
