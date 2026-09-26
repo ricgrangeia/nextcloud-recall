@@ -172,6 +172,37 @@ class EpisodeMapper extends QBMapper {
 		return $this->findEntities($qb);
 	}
 
+	/**
+	 * Os tipos que este utilizador ja usou, por ordem alfabetica.
+	 *
+	 * Serve a lista de sugestoes da interface. E deliberadamente derivado dos
+	 * episodios em vez de vir de uma tabela de tipos: o tipo e um rotulo livre
+	 * -- o agente tem instrucoes para inventar um quando nenhum serve -- e uma
+	 * tabela obrigaria a curar a mao uma lista que se mantem sozinha. Quando
+	 * um tipo deixa de ser usado, desaparece; quando aparece um novo, e
+	 * sugerido a partir dai. Se algum dia um tipo precisar de dados proprios
+	 * (icone, cor, regra de repeticao), ai sim passa a ser uma entidade.
+	 *
+	 * @return string[]
+	 */
+	public function distinctTypes(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->selectDistinct('type')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->neq('type', $qb->createNamedParameter('')))
+			->orderBy('type', 'ASC');
+
+		$types = [];
+		$result = $qb->executeQuery();
+		while ($row = $result->fetch()) {
+			$types[] = (string)$row['type'];
+		}
+		$result->closeCursor();
+
+		return $types;
+	}
+
 	public function deleteById(int $id, string $userId): bool {
 		try {
 			$entity = $this->find($id, $userId);

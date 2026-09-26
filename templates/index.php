@@ -60,12 +60,9 @@ $token = \OCP\Util::callRegister();
 					<input type="text" id="recall-type" name="type" list="recall-types"
 					       placeholder="<?php p($l->t('ex: compra')); ?>">
 					<datalist id="recall-types">
-						<option value="compra"></option>
-						<option value="viagem"></option>
-						<option value="saude"></option>
-						<option value="escola"></option>
-						<option value="ideia"></option>
-						<option value="prenda"></option>
+						<?php foreach ($_['types'] as $tipo) { ?>
+							<option value="<?php p($tipo); ?>"></option>
+						<?php } ?>
 					</datalist>
 				</span>
 			</div>

@@ -71,6 +71,7 @@ class PageController extends Controller {
 			// serve esta app -- sem ele parece apenas mais uma lista.
 			'onThisDay' => $this->service->onThisDay($userId, ['window' => 3, 'years_back' => 20]),
 			'search' => $search,
+			'types' => $this->service->types($userId),
 			'error' => (string)($this->request->getParam('error') ?? ''),
 			'createUrl' => $this->urlGenerator->linkToRoute('recall.page.create'),
 			'indexUrl' => $this->urlGenerator->linkToRoute('recall.page.index'),

@@ -18,6 +18,12 @@ use OCP\AppFramework\Db\DoesNotExistException;
 class EpisodeService {
 	private const PRECISIONS = ['day', 'month', 'year'];
 
+	/**
+	 * So para quem ainda nao tem episodios -- a partir do primeiro, as
+	 * sugestoes passam a ser os tipos realmente usados.
+	 */
+	private const TIPOS_INICIAIS = ['compra', 'viagem', 'saude', 'escola', 'ideia', 'prenda'];
+
 	public function __construct(
 		private EpisodeMapper $episodes,
 		private LinkMapper $links,
@@ -149,6 +155,22 @@ class EpisodeService {
 		}
 
 		return $this->hydrate([$episode])[0];
+	}
+
+	/**
+	 * Sugestoes de tipo para a interface: os que ja foram usados, mais os de
+	 * arranque. Continua a ser um campo livre -- isto sugere, nao limita.
+	 *
+	 * @return string[]
+	 */
+	public function types(string $userId): array {
+		$todos = array_unique(array_merge(
+			$this->episodes->distinctTypes($userId),
+			self::TIPOS_INICIAIS
+		));
+		sort($todos, SORT_NATURAL | SORT_FLAG_CASE);
+
+		return $todos;
 	}
 
 	public function delete(int $id, string $userId): bool {
