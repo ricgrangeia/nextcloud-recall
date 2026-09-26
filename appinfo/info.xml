@@ -16,7 +16,7 @@ ligacoes sao consultaveis nos dois sentidos ("tudo o que me lembro sobre esta pe
 Pensada para ser usada tanto a mao como por um agente: a API e OCS (chamavel com app password) e
 inclui uma consulta dedicada de "neste dia em anos anteriores", que e o que torna possivel
 lembrar sem que ninguem se lembre de perguntar.]]></description>
-	<version>0.7.0</version>
+	<version>0.7.1</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="ricardo@grangeia.pt">Ricardo</author>
 	<namespace>Recall</namespace>
@@ -33,6 +33,7 @@ lembrar sem que ninguem se lembre de perguntar.]]></description>
 	<commands>
 		<command>OCA\Recall\Command\AddEpisode</command>
 		<command>OCA\Recall\Command\ListEpisodes</command>
+		<command>OCA\Recall\Command\InspectContacts</command>
 	</commands>
 	<navigations>
 		<navigation>
