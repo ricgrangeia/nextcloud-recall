@@ -106,7 +106,18 @@ encontraste o contacto** — não inventes um `ref`.
 O `ref` é **sempre um identificador estável**, nunca um nome nem um caminho:
 
 - `contact` → UID do CardDAV. Não o sabes de cor: descobre-o com
-  `GET /api/v1/contacts?q=<nome>`, que devolve `{uid, name}`.
+  `GET /api/v1/contacts?q=<nome>`, que devolve `{uid, name, email, org, used_before}`.
+
+  **Homónimos — nunca escolhas às cegas.** É comum haver duas pessoas com o mesmo nome,
+  e uma ligação à pessoa errada passa despercebida para sempre, porque o rótulo gravado
+  diz o nome certo de qualquer maneira. Regra:
+
+  1. **Um só resultado** → usa-o.
+  2. **Vários, mas só um com `used_before > 0`** → usa esse (é a pessoa a quem o
+     utilizador já ligou memórias antes) e **diz na resposta qual escolheste**.
+  3. **Vários empatados** → **pergunta**, listando-os com o `email` ou a `org` para
+     serem distinguíveis. Não adivinhes pela ordem da lista.
+  4. **Nenhum** → cria o episódio sem a ligação e avisa que não encontraste o contacto.
 - `photo` / `file` / `folder` → file id do Nextcloud. Se tiveres um URL,
   passa-o por `GET /api/v1/files/resolve?link=<url>`, que devolve já o `kind` certo.
 - `event` / `task` → UID do CalDAV do evento ou da tarefa.

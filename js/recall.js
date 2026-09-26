@@ -121,7 +121,13 @@
 						clearResults();
 						(data.contacts || []).forEach(function (contact) {
 							const item = document.createElement('li');
-							item.textContent = contact.name;
+							// O nome sozinho nao chega quando ha homonimos: sem
+							// isto, duas pessoas com o mesmo nome aparecem como
+							// duas linhas identicas e escolher e adivinhar.
+							const detalhe = contact.email || contact.org || '';
+							item.textContent = detalhe
+								? contact.name + '  \u2014  ' + detalhe
+								: contact.name;
 							item.addEventListener('mousedown', function (event) {
 								event.preventDefault();
 								choose(contact);

@@ -67,6 +67,40 @@ class LinkMapper extends QBMapper {
 		return $ids;
 	}
 
+	/**
+	 * Quantos episodios ja estao ligados a cada um destes refs.
+	 *
+	 * Serve para desempatar homonimos: perguntado por "Sofia" com duas na
+	 * lista de contactos, saber que a uma delas ja foram ligadas quatro
+	 * memorias e a outra nenhuma e a melhor pista disponivel -- muito melhor
+	 * do que escolher a primeira que a pesquisa devolver.
+	 *
+	 * @param string[] $refs
+	 * @return array<string, int> ref => contagem (refs sem ligacoes ficam de fora)
+	 */
+	public function countByRefs(string $kind, array $refs): array {
+		if ($refs === []) {
+			return [];
+		}
+
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('ref')
+			->selectAlias($qb->createFunction('COUNT(*)'), 'total')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('kind', $qb->createNamedParameter($kind)))
+			->andWhere($qb->expr()->in('ref', $qb->createNamedParameter($refs, IQueryBuilder::PARAM_STR_ARRAY)))
+			->groupBy('ref');
+
+		$out = [];
+		$result = $qb->executeQuery();
+		while ($row = $result->fetch()) {
+			$out[(string)$row['ref']] = (int)$row['total'];
+		}
+		$result->closeCursor();
+
+		return $out;
+	}
+
 	public function deleteByEpisode(int $episodeId): void {
 		$qb = $this->db->getQueryBuilder();
 		$qb->delete($this->getTableName())
