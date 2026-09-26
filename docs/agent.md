@@ -82,8 +82,10 @@ Obrigatórios: `title` e `occurred_at`. Põe sempre `"source": "agent"` no que c
 Repara no exemplo: a Sofia aparece em `links`, **não só no título**. Se o utilizador
 nomeia alguém, o episódio tem de ficar ligado a essa pessoa — ver a secção seguinte.
 
-`type` é livre; usa os que já existem quando servirem: `compra`, `viagem`, `saude`,
-`ideia`, `prenda`.
+**`type` é livre. Se nenhum dos que já existem servir, INVENTA UM** — não encaixes à
+força no mais parecido. Um teste de matemática não é `saude`, é `escola`; um tipo errado
+é pior do que um tipo novo, porque faz a memória aparecer na pergunta errada daqui a um
+ano. Os que já existem: `compra`, `viagem`, `saude`, `escola`, `ideia`, `prenda`.
 
 ---
 
