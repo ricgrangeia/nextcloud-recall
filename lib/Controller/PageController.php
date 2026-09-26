@@ -8,6 +8,7 @@ use OCA\Recall\AppInfo\Application;
 use OCA\Recall\Service\EpisodeService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
@@ -31,7 +32,17 @@ class PageController extends Controller {
 		parent::__construct($appName, $request);
 	}
 
+	/**
+	 * O NoCSRFRequired e obrigatorio e nao um relaxamento: o SecurityMiddleware
+	 * exige token CSRF em TODOS os pedidos, GET incluido, e abrir a pagina pela
+	 * barra de navegacao e um GET sem token nenhum. Sem isto a app responde
+	 * "CSRF check failed" logo ao entrar.
+	 *
+	 * Os metodos abaixo (create/destroy) NAO levam esta anotacao de proposito:
+	 * alteram estado, e o token vem no formulario.
+	 */
 	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function index(): TemplateResponse {
 		\OCP\Util::addStyle(Application::APP_ID, 'recall');
 
