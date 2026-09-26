@@ -19,7 +19,10 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCreatedAt(string $createdAt)
  */
 class Link extends Entity implements \JsonSerializable {
-	public const KINDS = ['contact', 'photo', 'event', 'task'];
+	// photo/file/folder sao todos referenciados por file id do Nextcloud; a
+	// distincao existe para o agente saber o que pode fazer com cada um (uma
+	// foto mostra-se, uma pasta abre-se).
+	public const KINDS = ['contact', 'photo', 'file', 'folder', 'event', 'task'];
 
 	protected $episodeId;
 	protected $kind;

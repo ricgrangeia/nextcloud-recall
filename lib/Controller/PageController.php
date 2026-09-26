@@ -6,6 +6,7 @@ namespace OCA\Recall\Controller;
 
 use OCA\Recall\AppInfo\Application;
 use OCA\Recall\Service\EpisodeService;
+use OCA\Recall\Service\FileLinkService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -16,16 +17,17 @@ use OCP\IURLGenerator;
 use OCP\IUserSession;
 
 /**
- * A interface. Renderizada no servidor e com formularios normais, sem
- * JavaScript nem pipeline de build -- e o que permite acrescentar memorias a
- * mao sem depender do agente, que era o requisito, ao custo de recarregar a
- * pagina em cada accao.
+ * A interface. Renderizada no servidor, com formularios normais que
+ * funcionam sozinhos; o js/recall.js e melhoria progressiva por cima disso
+ * (evita recarregamentos e traz os seletores). Sem pipeline de build em
+ * nenhum dos casos.
  */
 class PageController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
 		private EpisodeService $service,
+		private FileLinkService $files,
 		private IUserSession $userSession,
 		private IURLGenerator $urlGenerator,
 	) {
@@ -77,6 +79,10 @@ class PageController extends Controller {
 			// partir de suposicoes sobre o webroot.
 			'ocsEpisodesUrl' => rtrim($this->urlGenerator->linkToOCSRouteAbsolute('recall.episodeApi.index'), '/'),
 			'ocsContactsUrl' => rtrim($this->urlGenerator->linkToOCSRouteAbsolute('recall.contactApi.search'), '/'),
+			'ocsFilesUrl' => rtrim($this->urlGenerator->linkToOCSRouteAbsolute('recall.fileApi.resolve'), '/'),
+			// Prefixo da ligacao interna, para as ligacoes a ficheiros na lista
+			// serem clicaveis: basta acrescentar-lhe o file id.
+			'fileLinkBase' => $this->urlGenerator->getAbsoluteURL('/f/'),
 		]);
 	}
 
@@ -94,6 +100,20 @@ class PageController extends Controller {
 				'ref' => $contactRef,
 				'label' => $contactLabel !== '' ? $contactLabel : $contactRef,
 			];
+		}
+
+		// A ligacao a ficheiro e sempre resolvida no servidor, mesmo quando o
+		// JavaScript ja a mostrou resolvida: o que vem do cliente nao decide
+		// a que ficheiro se fica ligado, nem se ha acesso a ele.
+		$fileLink = trim((string)$this->request->getParam('link_file', ''));
+		if ($fileLink !== '') {
+			$resolved = $this->files->resolve($this->uid(), $fileLink);
+			if ($resolved === null) {
+				return $this->backWithError(
+					'Nao encontrei nenhum ficheiro teu nessa ligacao: ' . $fileLink
+				);
+			}
+			$links[] = $resolved;
 		}
 
 		try {

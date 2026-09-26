@@ -155,3 +155,22 @@
 #recall-contact-results li:hover {
 	background: var(--color-background-hover);
 }
+
+.recall-hint {
+	margin: 4px 0 0;
+	font-size: 13px;
+	color: var(--color-text-maxcontrast);
+}
+
+.recall-hint-error {
+	color: var(--color-error);
+}
+
+a.recall-tag {
+	text-decoration: none;
+	color: inherit;
+}
+
+a.recall-tag:hover {
+	background: var(--color-primary-element-light);
+}

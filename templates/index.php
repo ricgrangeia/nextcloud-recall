@@ -5,7 +5,8 @@ $token = \OCP\Util::callRegister();
 ?>
 <div id="recall" class="recall"
      data-episodes-url="<?php p($_['ocsEpisodesUrl']); ?>"
-     data-contacts-url="<?php p($_['ocsContactsUrl']); ?>">
+     data-contacts-url="<?php p($_['ocsContactsUrl']); ?>"
+     data-files-url="<?php p($_['ocsFilesUrl']); ?>">
 
 	<?php if ($_['error'] !== ''): ?>
 		<div class="recall-error"><?php p($_['error']); ?></div>
@@ -77,6 +78,13 @@ $token = \OCP\Util::callRegister();
 				<ul id="recall-contact-results" hidden></ul>
 			</div>
 
+			<label for="recall-file"><?php p($l->t('Foto, documento ou pasta (opcional)')); ?></label>
+			<div class="recall-picker">
+				<input type="text" id="recall-file" name="link_file" autocomplete="off"
+				       placeholder="<?php p($l->t('cola aqui a "ligacao interna" do ficheiro')); ?>">
+				<p id="recall-file-feedback" class="recall-hint" hidden></p>
+			</div>
+
 			<label for="recall-body"><?php p($l->t('Detalhes (opcional)')); ?></label>
 			<textarea id="recall-body" name="body" rows="3"></textarea>
 
@@ -123,9 +131,17 @@ $token = \OCP\Util::callRegister();
 							</td>
 							<td>
 								<?php foreach ($episode['links'] as $link): ?>
-									<span class="recall-tag" title="<?php p($link['kind'] . ': ' . $link['ref']); ?>">
-										<?php p($link['label']); ?>
-									</span>
+									<?php if (in_array($link['kind'], ['photo', 'file', 'folder'], true)): ?>
+										<a class="recall-tag" target="_blank" rel="noreferrer noopener"
+										   href="<?php p($_['fileLinkBase'] . $link['ref']); ?>"
+										   title="<?php p($link['kind'] . ': ' . $link['ref']); ?>">
+											<?php p($link['label']); ?>
+										</a>
+									<?php else: ?>
+										<span class="recall-tag" title="<?php p($link['kind'] . ': ' . $link['ref']); ?>">
+											<?php p($link['label']); ?>
+										</span>
+									<?php endif; ?>
 								<?php endforeach; ?>
 							</td>
 							<td>

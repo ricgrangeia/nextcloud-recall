@@ -26,7 +26,8 @@ return [
 		['name' => 'episodeApi#update', 'url' => '/api/v1/episodes/{id}', 'verb' => 'PUT'],
 		['name' => 'episodeApi#destroy', 'url' => '/api/v1/episodes/{id}', 'verb' => 'DELETE'],
 
-		// Alimenta o seletor de contactos da interface.
+		// Alimentam os seletores da interface.
 		['name' => 'contactApi#search', 'url' => '/api/v1/contacts', 'verb' => 'GET'],
+		['name' => 'fileApi#resolve', 'url' => '/api/v1/files/resolve', 'verb' => 'GET'],
 	],
 ];

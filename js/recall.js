@@ -19,6 +19,7 @@
 
 	const episodesUrl = root.dataset.episodesUrl;
 	const contactsUrl = root.dataset.contactsUrl;
+	const filesUrl = root.dataset.filesUrl;
 	if (!episodesUrl || !contactsUrl) {
 		return;
 	}
@@ -135,6 +136,45 @@
 
 		contactInput.addEventListener('blur', function () {
 			window.setTimeout(clearResults, 150);
+		});
+	}
+
+	// ------------------------------------------------ ligacao a um ficheiro
+
+	const fileInput = document.getElementById('recall-file');
+	const fileFeedback = document.getElementById('recall-file-feedback');
+
+	if (fileInput && fileFeedback && filesUrl) {
+		let fileTimer = null;
+
+		function say(message, isError) {
+			fileFeedback.textContent = message;
+			fileFeedback.hidden = message === '';
+			fileFeedback.classList.toggle('recall-hint-error', !!isError);
+		}
+
+		function check() {
+			const value = fileInput.value.trim();
+			if (value === '') {
+				say('');
+				return;
+			}
+
+			ocs(filesUrl + '?format=json&link=' + encodeURIComponent(value))
+				.then(function (data) {
+					const tipo = { photo: 'Foto', folder: 'Pasta', file: 'Ficheiro' }[data.kind] || 'Ficheiro';
+					say(tipo + ': ' + data.label, false);
+				})
+				.catch(function () {
+					// So um aviso: quem grava e o servidor, que volta a
+					// resolver e recusa se nao encontrar.
+					say('Nao encontrei nenhum ficheiro teu nessa ligacao.', true);
+				});
+		}
+
+		fileInput.addEventListener('input', function () {
+			window.clearTimeout(fileTimer);
+			fileTimer = window.setTimeout(check, 400);
 		});
 	}
 })();
