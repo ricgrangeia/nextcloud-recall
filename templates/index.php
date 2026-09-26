@@ -3,7 +3,9 @@
 /** @var \OCP\IL10N $l */
 $token = \OCP\Util::callRegister();
 ?>
-<div id="recall" class="recall">
+<div id="recall" class="recall"
+     data-episodes-url="<?php p($_['ocsEpisodesUrl']); ?>"
+     data-contacts-url="<?php p($_['ocsContactsUrl']); ?>">
 
 	<?php if ($_['error'] !== ''): ?>
 		<div class="recall-error"><?php p($_['error']); ?></div>
@@ -66,6 +68,15 @@ $token = \OCP\Util::callRegister();
 				</span>
 			</div>
 
+			<label for="recall-contact"><?php p($l->t('Pessoa (opcional)')); ?></label>
+			<div class="recall-picker">
+				<input type="text" id="recall-contact" name="link_contact_label"
+				       autocomplete="off"
+				       placeholder="<?php p($l->t('escreve o nome de um contacto')); ?>">
+				<input type="hidden" id="recall-contact-ref" name="link_contact_ref" value="">
+				<ul id="recall-contact-results" hidden></ul>
+			</div>
+
 			<label for="recall-body"><?php p($l->t('Detalhes (opcional)')); ?></label>
 			<textarea id="recall-body" name="body" rows="3"></textarea>
 
@@ -120,6 +131,7 @@ $token = \OCP\Util::callRegister();
 							<td>
 								<form method="post"
 								      action="<?php p($episode['delete_url']); ?>"
+								      data-delete-id="<?php p($episode['id']); ?>"
 								      onsubmit="return confirm('<?php p($l->t('Apagar esta memoria?')); ?>');">
 									<input type="hidden" name="requesttoken" value="<?php p($token); ?>">
 									<button type="submit" class="button"><?php p($l->t('Apagar')); ?></button>

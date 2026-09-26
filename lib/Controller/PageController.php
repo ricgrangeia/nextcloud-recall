@@ -45,6 +45,9 @@ class PageController extends Controller {
 	#[NoCSRFRequired]
 	public function index(): TemplateResponse {
 		\OCP\Util::addStyle(Application::APP_ID, 'recall');
+		// Melhoria progressiva: sem isto a pagina continua a funcionar por
+		// POST normal, so com recarregamento.
+		\OCP\Util::addScript(Application::APP_ID, 'recall');
 
 		$userId = $this->uid();
 		$search = (string)($this->request->getParam('q') ?? '');
@@ -69,11 +72,30 @@ class PageController extends Controller {
 			'error' => (string)($this->request->getParam('error') ?? ''),
 			'createUrl' => $this->urlGenerator->linkToRoute('recall.page.create'),
 			'indexUrl' => $this->urlGenerator->linkToRoute('recall.page.index'),
+			// Os URLs da API OCS sao gerados aqui pelo router e entregues ao
+			// JavaScript em atributos data-, em vez de o cliente os montar a
+			// partir de suposicoes sobre o webroot.
+			'ocsEpisodesUrl' => rtrim($this->urlGenerator->linkToOCSRouteAbsolute('recall.episodeApi.index'), '/'),
+			'ocsContactsUrl' => rtrim($this->urlGenerator->linkToOCSRouteAbsolute('recall.contactApi.search'), '/'),
 		]);
 	}
 
 	#[NoAdminRequired]
 	public function create(): RedirectResponse {
+		// A ligacao ao contacto so se grava se vier o UID. O nome sozinho nao
+		// serve: e o UID que sobrevive a pessoa mudar de nome, e gravar um sem
+		// o outro daria uma ligacao que aponta para lado nenhum.
+		$links = [];
+		$contactRef = trim((string)$this->request->getParam('link_contact_ref', ''));
+		$contactLabel = trim((string)$this->request->getParam('link_contact_label', ''));
+		if ($contactRef !== '') {
+			$links[] = [
+				'kind' => 'contact',
+				'ref' => $contactRef,
+				'label' => $contactLabel !== '' ? $contactLabel : $contactRef,
+			];
+		}
+
 		try {
 			$this->service->create($this->uid(), [
 				'title' => $this->request->getParam('title'),
@@ -82,6 +104,7 @@ class PageController extends Controller {
 				'type' => $this->request->getParam('type'),
 				'body' => $this->request->getParam('body'),
 				'source' => 'manual',
+				'links' => $links,
 			]);
 		} catch (\InvalidArgumentException $e) {
 			return $this->backWithError($e->getMessage());

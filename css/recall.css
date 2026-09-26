@@ -120,3 +120,38 @@
 .recall-empty {
 	color: var(--color-text-maxcontrast);
 }
+
+/* Seletor de contactos: lista de sugestoes por baixo do campo. */
+.recall-picker {
+	position: relative;
+}
+
+.recall-picker input[type="text"] {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+#recall-contact-results {
+	position: absolute;
+	z-index: 10;
+	left: 0;
+	right: 0;
+	margin: 2px 0 0;
+	padding: 4px 0;
+	list-style: none;
+	max-height: 220px;
+	overflow-y: auto;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	background: var(--color-main-background);
+	box-shadow: 0 2px 8px var(--color-box-shadow);
+}
+
+#recall-contact-results li {
+	padding: 6px 12px;
+	cursor: pointer;
+}
+
+#recall-contact-results li:hover {
+	background: var(--color-background-hover);
+}
