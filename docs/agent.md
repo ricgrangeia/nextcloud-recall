@@ -106,18 +106,44 @@ encontraste o contacto** — não inventes um `ref`.
 O `ref` é **sempre um identificador estável**, nunca um nome nem um caminho:
 
 - `contact` → UID do CardDAV. Não o sabes de cor: descobre-o com
-  `GET /api/v1/contacts?q=<nome>`, que devolve `{uid, name, email, org, used_before}`.
+  `GET /api/v1/contacts?q=<nome>`, que devolve, por contacto:
+  `{uid, name, email, org, relationship, groups, birthday, name_match, used_before}`.
 
-  **Homónimos — nunca escolhas às cegas.** É comum haver duas pessoas com o mesmo nome,
-  e uma ligação à pessoa errada passa despercebida para sempre, porque o rótulo gravado
-  diz o nome certo de qualquer maneira. Regra:
+  **Homónimos — nunca escolhas às cegas.** Uma pesquisa por um primeiro nome devolve
+  facilmente dez resultados, e uma ligação à pessoa errada passa despercebida para
+  sempre, porque o rótulo gravado diz o nome certo de qualquer maneira.
 
-  1. **Um só resultado** → usa-o.
-  2. **Vários, mas só um com `used_before > 0`** → usa esse (é a pessoa a quem o
-     utilizador já ligou memórias antes) e **diz na resposta qual escolheste**.
-  3. **Vários empatados** → **pergunta**, listando-os com o `email` ou a `org` para
-     serem distinguíveis. Não adivinhes pela ordem da lista.
-  4. **Nenhum** → cria o episódio sem a ligação e avisa que não encontraste o contacto.
+  Atenção a um erro que a lista convida a cometer: **a maioria dos resultados não são
+  homónimos**, são contactos de *outras* pessoas que têm aquele nome escrito por
+  referência — "Prof. Clara 1ºCiclo (Sofia)", "Ana Maia (Mãe Joana Colega Sofia)".
+  Ninguém chama "Sofia" a essas pessoas. É para isso que serve o `name_match`:
+
+  - `exact` — o contacto chama-se exatamente assim
+  - `start` — o nome procurado abre o nome ("Sofia da Fonseca Dias")
+  - `word` — aparece como palavra inteira algures ("Avó Sofia")
+  - `partial` — aparece só lá dentro; **quase nunca é a pessoa**
+
+  Os sinais, do mais forte para o mais fraco:
+
+  1. **`relationship`** (`CHILD`, `SPOUSE`, `PARENT`, …) — o utilizador declarou a
+     relação nos Contactos. É o sinal mais forte que existe.
+  2. **`groups`** contém "Família" — também posto à mão pelo utilizador.
+  3. **`used_before > 0`** — já ligaste memórias a esta pessoa antes.
+  4. **`name_match`** `exact`/`start`.
+
+  Regra:
+
+  1. **Um só candidato com sinal de família** (1 ou 2) → usa-o.
+  2. **Nenhum com família, mas só um com `used_before > 0`** → usa esse e **diz na
+     resposta quem escolheste**.
+  3. **Vários empatados** → **pergunta**, listando-os com o `email`, a `org` ou o nome
+     completo para serem distinguíveis. Não adivinhes pela ordem da lista.
+  4. **Nenhum, ou só resultados `partial`** → cria o episódio sem a ligação e avisa que
+     não encontraste o contacto. Nunca inventes um `ref`.
+
+  Se o utilizador tiver de desempatar mais do que uma vez pela mesma pessoa, sugere-lhe
+  que a marque nos Contactos (grupo "Família", ou o campo de relação) — configura-se uma
+  vez e resolve o problema para sempre.
 - `photo` / `file` / `folder` → file id do Nextcloud. Se tiveres um URL,
   passa-o por `GET /api/v1/files/resolve?link=<url>`, que devolve já o `kind` certo.
 - `event` / `task` → UID do CalDAV do evento ou da tarefa.

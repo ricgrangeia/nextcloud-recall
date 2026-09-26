@@ -64,11 +64,23 @@ class ContactApiController extends OCSController {
 			// seletor da interface) como duas entradas identicas, e escolher
 			// uma e adivinhar -- uma ligacao errada que parece certa, porque o
 			// rotulo gravado diz "Sofia" de qualquer maneira.
+			// RELATIONSHIP e CATEGORIES sao os sinais fortes, e sao POSTOS PELO
+			// UTILIZADOR uma vez nos Contactos -- ao contrario do used_before,
+			// que so existe depois de ja se ter acertado uma vez. Sao eles que
+			// resolvem a primeira ligacao, que e onde o erro passa despercebido.
+			//
+			// Atencao ao nome: o Nextcloud grava RELATIONSHIP, nao a propriedade
+			// vCard padrao RELATED. Confirmado contra contactos reais; ler
+			// RELATED compila e nunca encontra nada.
 			$out[] = [
 				'uid' => $uid,
 				'name' => $name,
 				'email' => self::first($contact['EMAIL'] ?? null),
 				'org' => self::first($contact['ORG'] ?? null),
+				'relationship' => self::first($contact['RELATIONSHIP'] ?? null),
+				'groups' => self::listOf($contact['CATEGORIES'] ?? null),
+				'birthday' => self::first($contact['BDAY'] ?? null),
+				'name_match' => self::nameMatch($q, $name),
 			];
 		}
 
@@ -80,9 +92,90 @@ class ContactApiController extends OCSController {
 		}
 		unset($contacto);
 
-		usort($out, static fn (array $a, array $b): int => $b['used_before'] <=> $a['used_before']);
+		// Ordem: familia primeiro, depois quem ja foi usado, depois quem
+		// realmente SE CHAMA assim. Sem o ultimo criterio, "Prof. Clara
+		// 1ºCiclo (Sofia)" chega ao agente ao mesmo nivel da propria Sofia.
+		usort($out, static function (array $a, array $b): int {
+			return [self::familyRank($b), $b['used_before'], self::matchRank($b['name_match'])]
+				<=> [self::familyRank($a), $a['used_before'], self::matchRank($a['name_match'])];
+		});
 
 		return new DataResponse(['contacts' => $out]);
+	}
+
+	/** Familia declarada nos Contactos: relacao explicita vale mais do que grupo. */
+	private static function familyRank(array $c): int {
+		if ($c['relationship'] !== '') {
+			return 2;
+		}
+		foreach ($c['groups'] as $grupo) {
+			if (str_contains(self::fold($grupo), 'familia')) {
+				return 1;
+			}
+		}
+		return 0;
+	}
+
+	private static function matchRank(string $match): int {
+		return ['exact' => 3, 'start' => 2, 'word' => 1][$match] ?? 0;
+	}
+
+	/**
+	 * Como e que o nome procurado bate no nome do contacto.
+	 *
+	 * Distingue "esta pessoa chama-se Sofia" de "esta pessoa tem Sofia escrito
+	 * no nome por referencia a outra" -- que numa lista de dez resultados e a
+	 * diferenca entre a filha do utilizador e a professora da filha.
+	 */
+	private static function nameMatch(string $q, string $name): string {
+		$q = self::fold($q);
+		$name = self::fold($name);
+		if ($q === '' || $name === '') {
+			return 'partial';
+		}
+		if ($q === $name) {
+			return 'exact';
+		}
+		if (str_starts_with($name, $q . ' ')) {
+			return 'start';
+		}
+		// Fronteira de palavra, para "Avo Sofia" contar e "Sofias" nao.
+		if (preg_match('/(?:^|[^\p{L}])' . preg_quote($q, '/') . '(?:$|[^\p{L}])/u', $name) === 1) {
+			return 'word';
+		}
+		return 'partial';
+	}
+
+	/** Compara nomes sem tropecar em acentos nem maiusculas. */
+	private static function fold(string $s): string {
+		$s = mb_strtolower(trim($s), 'UTF-8');
+		if (class_exists(\Normalizer::class)) {
+			$d = \Normalizer::normalize($s, \Normalizer::FORM_D);
+			if (is_string($d)) {
+				$s = preg_replace('/\p{Mn}/u', '', $d) ?? $s;
+			}
+		}
+		return $s;
+	}
+
+	/**
+	 * CATEGORIES vem como "Familia" ou "Familia,Trabalho", conforme o cliente
+	 * que gravou o contacto.
+	 *
+	 * @return string[]
+	 */
+	private static function listOf(mixed $value): array {
+		$bruto = is_array($value) ? $value : [$value];
+		$out = [];
+		foreach ($bruto as $item) {
+			foreach (explode(',', (string)$item) as $parte) {
+				$parte = trim($parte);
+				if ($parte !== '') {
+					$out[] = $parte;
+				}
+			}
+		}
+		return array_values(array_unique($out));
 	}
 
 	/**
