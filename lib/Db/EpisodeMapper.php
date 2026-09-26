@@ -46,9 +46,9 @@ class EpisodeMapper extends QBMapper {
 			->from($this->getTableName())
 			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
 
-		// Comparadas como string ISO, nao com PARAM_DATE: 'YYYY-MM-DD' ordena
-		// lexicograficamente igual a cronologicamente, e os tres motores
-		// aceitam-na contra uma coluna 'date' sem conversoes pelo meio.
+		// occurred_at e uma coluna de texto 'YYYY-MM-DD' (ver a migracao), por
+		// isso isto e comparacao de string com string -- sem conversoes de tipo
+		// implicitas, que e onde o PostgreSQL costuma recusar.
 		if ($from !== null) {
 			$qb->andWhere($qb->expr()->gte(
 				'occurred_at',

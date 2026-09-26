@@ -50,11 +50,8 @@ class Episode extends Entity implements \JsonSerializable {
 		$this->addType('id', 'integer');
 		$this->addType('occurredYear', 'integer');
 		$this->addType('occurredMd', 'integer');
-		// occurredAt fica deliberadamente sem addType e e tratado como string
-		// 'Y-m-d'. Ligar objetos DateTime a uma coluna 'date' obriga a acertar
-		// com o tipo exato que cada motor devolve na leitura, e os tres nao
-		// concordam; uma string ISO e aceite por MySQL, PostgreSQL e SQLite
-		// tanto a escrever como a comparar.
+		// occurredAt nao leva addType: a coluna e texto 'YYYY-MM-DD'
+		// (ver a migracao), por isso entra e sai como string em qualquer motor.
 	}
 
 	/**
@@ -70,20 +67,9 @@ class Episode extends Entity implements \JsonSerializable {
 	}
 
 	public function jsonSerialize(): array {
-		// Tolerante ao que o motor devolver: alguns entregam a coluna 'date'
-		// como string, outros ja com hora colada.
-		$occurred = $this->occurredAt;
-		if ($occurred instanceof \DateTimeInterface) {
-			$occurred = $occurred->format('Y-m-d');
-		} elseif (is_string($occurred) && $occurred !== '') {
-			$occurred = substr($occurred, 0, 10);
-		} else {
-			$occurred = null;
-		}
-
 		return [
 			'id' => $this->getId(),
-			'occurred_at' => $occurred,
+			'occurred_at' => $this->occurredAt,
 			'occurred_precision' => $this->occurredPrecision,
 			'title' => $this->title,
 			'body' => $this->body,

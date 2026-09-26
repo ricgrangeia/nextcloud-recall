@@ -21,7 +21,14 @@ class Version000001Date20260926000000 extends SimpleMigrationStep {
 
 			// Quando ACONTECEU -- distinto de created_at (quando foi registado).
 			// E a distincao que separa esta app de um bloco de notas.
-			$table->addColumn('occurred_at', 'date', ['notnull' => true]);
+			//
+			// Guardada como string 'YYYY-MM-DD' e nao como coluna 'date', de
+			// proposito: esta app nunca usa funcoes de data em SQL (e para isso
+			// que existem occurred_year e occurred_md), por isso uma coluna
+			// 'date' so traria o risco de comparacoes com tipos trocados --
+			// o PostgreSQL e estrito nisso -- sem trazer beneficio nenhum.
+			// 'YYYY-MM-DD' ordena lexicograficamente igual a cronologicamente.
+			$table->addColumn('occurred_at', 'string', ['notnull' => true, 'length' => 10]);
 
 			// Ano e MMDD desnormalizados de occurred_at. Existem porque uma app
 			// Nextcloud tem de correr em MySQL, PostgreSQL e SQLite, e extrair
