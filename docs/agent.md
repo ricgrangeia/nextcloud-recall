@@ -79,12 +79,27 @@ GET    /ocs/v2.php/apps/recall/api/v1/files/resolve?link=<url ou file id>
 Obrigatórios: `title` e `occurred_at`. Põe sempre `"source": "agent"` no que criares —
 é o que distingue o que deduziste do que o utilizador escreveu à mão.
 
+Repara no exemplo: a Sofia aparece em `links`, **não só no título**. Se o utilizador
+nomeia alguém, o episódio tem de ficar ligado a essa pessoa — ver a secção seguinte.
+
 `type` é livre; usa os que já existem quando servirem: `compra`, `viagem`, `saude`,
 `ideia`, `prenda`.
 
 ---
 
 ## Ligações
+
+**Se a memória menciona uma pessoa, LIGA-A. Não basta escrever o nome no título.**
+
+"dei um livro à Sofia" não é um episódio com a palavra "Sofia" lá dentro — é um episódio
+**ligado à Sofia**. Sem a ligação, daqui a um ano ninguém consegue cruzar o aniversário
+dela com o que lhe deste, que é metade da razão de esta app existir. O mesmo vale para
+uma foto, um evento ou uma tarefa que o utilizador refira.
+
+Antes de criar o episódio: vê que pessoas, ficheiros ou eventos são mencionados, resolve
+cada um no identificador estável (ver abaixo) e inclui-os no array `links`. Se a pesquisa
+não devolver ninguém com esse nome, cria o episódio na mesma e **diz ao utilizador que não
+encontraste o contacto** — não inventes um `ref`.
 
 `kind` tem de ser um de: `contact`, `photo`, `file`, `folder`, `event`, `task`.
 
